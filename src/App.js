@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import './App.css';
 
 function App() {
@@ -21,7 +21,7 @@ function App() {
     fa: `فرستادن فرزندتان به تنهایی به قاره‌ای دیگر به امید آینده‌ای بهتر یکی از سخت‌ترین تصمیماتی است که والدین می‌توانند بگیرند. این وبسایت مشاوره حقوقی ارائه نمی‌دهد. در عوض، داستان‌هایی از جوانانی که به عنوان نوجوانان بدون همراه وارد فرانسه شده‌اند، به اشتراک گذاشته می‌شود. این داستان‌ها تنها یک مسیر ممکن را نشان می‌دهند، اما مهم است که شما به عنوان والد بدانید ممکن است زندگی فرزندتان چگونه باشد. اگر شما هم نوجوانی بدون همراه هستید یا بوده‌اید، می‌توانید داستان خود را به صورت ناشناس در اینجا به اشتراک بگذارید. هر صدا مهم است.`,
   };
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/posts`);
       const data = await res.json();
@@ -29,12 +29,11 @@ function App() {
     } catch (err) {
       console.error('Error fetching posts:', err);
     }
-  };
+  }, [API_URL]);
 
   useEffect(() => {
-  fetchPosts();
-}, [fetchPosts]);
-
+    fetchPosts();
+  }, [fetchPosts]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
