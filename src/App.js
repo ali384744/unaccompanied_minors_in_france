@@ -1,69 +1,33 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 
-const translations = {
-  en: {
-    title: 'Unaccompanied Minors in France',
-    shareStory: 'Share your story...',
-    post: 'Post',
-    comments: 'Comments:',
-    commentPlaceholder: 'Write a comment and press Enter...',
-    welcome: "Sending your child away in search of a better future, safety, healthcare, education is one of the hardest choices a parent can make. Many of us here at the LAO Red Cross came to France with hope, but without any understanding of what would happen next.",
-    info: "This website is not a legal guide. It’s not a promise or a warning. It’s a collection of real stories shared by young people like me, living as unaccompanied minors in France. What you’ll read here are just a few of the many paths a young person’s life can take. Every story is different. But I believe it’s important that you, as a parent, see one possible version of what life here might be like for your child. If you are also living this experience or lived it before and want to share your story, you can do it anonymously on this website in any language you feel comfortable using. Your story matters."
-  },
-  fr: {
-    title: 'Mineurs Non Accompagnés en France',
-    shareStory: 'Partagez votre histoire...',
-    post: 'Publier',
-    comments: 'Commentaires :',
-    commentPlaceholder: 'Écrivez un commentaire et appuyez sur Entrée...',
-    welcome: "Envoyer votre enfant loin à la recherche d’un avenir meilleur, de la sécurité, des soins de santé, de l’éducation est l’un des choix les plus difficiles qu’un parent puisse faire. Beaucoup d’entre nous ici à la Croix-Rouge LAO sommes venus en France avec espoir, mais sans aucune compréhension de ce qui allait se passer ensuite.",
-    info: "Ce site n’est pas un guide juridique. Ce n’est pas une promesse ni un avertissement. C’est une collection d’histoires vraies partagées par des jeunes comme moi, vivant comme mineurs non accompagnés en France. Ce que vous lirez ici n’est qu’une petite partie des nombreux chemins que la vie d’un jeune peut prendre. Chaque histoire est différente. Mais je crois qu’il est important que vous, en tant que parent, voyiez une version possible de ce que la vie ici pourrait être pour votre enfant. Si vous vivez aussi cette expérience ou l’avez vécue auparavant et que vous souhaitez partager votre histoire, vous pouvez le faire anonymement sur ce site dans la langue dans laquelle vous êtes à l’aise. Votre histoire compte."
-  },
-  ar: {
-    title: 'الأحداث غير المصحوبين في فرنسا',
-    shareStory: 'شارك قصتك...',
-    post: 'انشر',
-    comments: 'التعليقات:',
-    commentPlaceholder: 'اكتب تعليقًا واضغط Enter...',
-    welcome: "إرسال طفلك بعيدًا بحثًا عن مستقبل أفضل، الأمان، الرعاية الصحية، التعليم هو واحد من أصعب القرارات التي يمكن أن يتخذها الأهل. كثير منا هنا في الصليب الأحمر LAO جاؤوا إلى فرنسا بالأمل، ولكن بدون أي فهم لما سيحدث بعد ذلك.",
-    info: "هذا الموقع ليس دليلًا قانونيًا. إنه ليس وعدًا أو تحذيرًا. إنه مجموعة من القصص الحقيقية التي يشاركها شباب مثلي يعيشون كأحداث غير مصحوبين في فرنسا. ما ستقرأه هنا هو مجرد عدد قليل من المسارات التي يمكن أن تأخذها حياة الشاب. كل قصة مختلفة. لكنني أعتقد أنه من المهم أن ترى أنت، كوالد، نسخة ممكنة من كيف يمكن أن تكون الحياة هنا لطفلك. إذا كنت تعيش هذه التجربة أو عشتها من قبل وترغب في مشاركة قصتك، يمكنك القيام بذلك بشكل مجهول على هذا الموقع بأي لغة تشعر بالراحة في استخدامها. قصتك مهمة."
-  },
-  bm: { // Bambara
-    title: 'Minors Fɔlɔw ka tɔgɔ ko France',
-    shareStory: 'Kɛw ka fɔ ko...',
-    post: 'Fɔlɔ',
-    comments: 'Kan',
-    commentPlaceholder: 'Kyerɛ kan ka kɔ Enter...',
-    welcome: "I ni ce. Kani kɛɛbɛ fɛ ka kɔ France fɛɛrɛ kɔ ko ni i ye — ni mama ni baba be taa i kɛ ko.",
-    info: "I be taa hɛrɛw ka fɔli, sigi, ani fan fɛɛrɛ bɛɛ bɛɛ min ye kɛɛbɛ fɔlɔw ye. I be bɛɛ kɔrɔ."
-  },
-  uk: {
-    title: 'Неповнолітні без супроводу у Франції',
-    shareStory: 'Поділіться своєю історією...',
-    post: 'Опублікувати',
-    comments: 'Коментарі:',
-    commentPlaceholder: 'Напишіть коментар і натисніть Enter...',
-    welcome: "Відправити свою дитину на пошуки кращого майбутнього, безпеки, охорони здоров'я, освіти — одне з найважчих рішень, які може прийняти батько чи мати. Багато з нас тут, у Червоному Хресті ЛАО, приїхали до Франції з надією, але без розуміння того, що станеться далі.",
-    info: "Цей сайт не є юридичним посібником. Це не обіцянка чи попередження. Це збірка реальних історій, якими діляться молоді люди, які живуть як неповнолітні без супроводу у Франції. Те, що ви прочитаєте тут — це лише кілька шляхів, якими може піти життя молодої людини. Кожна історія різна. Але я вважаю, що важливо, щоб ви, як батько чи мати, побачили одну можливу версію того, яким може бути життя тут для вашої дитини. Якщо ви також переживаєте цей досвід або переживали його раніше і хочете поділитися своєю історією, ви можете зробити це анонімно на цьому сайті будь-якою мовою, якою ви відчуваєте комфорт. Ваша історія важлива."
-  }
-};
-
 function App() {
-  const [language, setLanguage] = useState('en');
+  const [posts, setPosts] = useState([]);
   const [text, setText] = useState('');
   const [image, setImage] = useState(null);
-  const [posts, setPosts] = useState([]);
+  const [comment, setComment] = useState('');
+  const [commentingPostId, setCommentingPostId] = useState(null);
+  const [language, setLanguage] = useState('en');
 
-  const t = translations[language];
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+  const introTexts = {
+    en: `Sending your child alone to another continent in hopes of a better future is one of the most difficult decisions a parent can make. This website does not offer legal guidance. It shares stories from young people who arrived in France as unaccompanied minors. These stories show just one possible path a young person’s life might take, but I believe it is important for you as a parent to understand what your child’s life could be like before making your decision. If you are an unaccompanied minor or have gone through this experience, you can share your story anonymously on this website. Every voice matters and can help prepare other minors for what lies ahead, as well as supporting families facing this decision.`,
+    fr: `Envoyer votre enfant seul sur un autre continent dans l’espoir d’un avenir meilleur est l’une des décisions les plus difficiles qu’un parent puisse prendre. Ce site ne propose pas de conseils juridiques. Il partage des témoignages de jeunes arrivés en France en tant que mineurs non accompagnés. Ces récits montrent un chemin possible, mais il est important, en tant que parent, de comprendre à quoi pourrait ressembler la vie de votre enfant avant de prendre votre décision. Si vous êtes un mineur non accompagné ou avez vécu cette expérience, vous pouvez partager votre histoire anonymement ici. Chaque voix compte.`,
+    bm: `K’a t’a fanga ka du kuma ka kɛ b’a fɛ a la den be taa Amerikɔ kɔfɛ ɲɛmɔgɔya ni kɛnɛya ni kalan ye, o ye ka bɔnbɔya dɛmɛ kɛ. Sitelu ye jurimuso ye. O bɛ sara don yera minɛ bɛ baa France kɔ sɛbɛn na dɔnkiliya la. O fɔlɔ ye dɔ ye, n’i taa, i bɛ fo a fɔlɔ ye i yɛrɛ la. Sɔ̀rɔ ka i ka dɔnkili don, a bɛ fɔ i tɛ sisan ka i fɔ i ɲinɛ ye dɔ. I tɛ ka ka dɔnkili dɔ bɛɛ la sisan ka sara sisan ni ɲɔgɔn dɔ kɛ.`,
+    ar: `إرسال طفلك بمفرده إلى قارة أخرى على أمل مستقبل أفضل هو من أصعب القرارات التي يمكن أن يتخذها أي والد. هذا الموقع لا يقدم إرشادات قانونية. إنه يشارك قصصًا لشباب وصلوا إلى فرنسا كقاصرين غير مصحوبين. هذه القصص توضح فقط أحد المسارات الممكنة التي قد يتخذها الشاب، ولكن من المهم أن تفهم كوالد كيف يمكن أن تبدو حياة طفلك قبل اتخاذ قرارك. إذا كنت قاصرًا غير مصحوب أو مررت بهذه التجربة، يمكنك مشاركة قصتك بشكل مجهول على هذا الموقع. كل صوت مهم.`,
+    uk: `Відправити дитину на інший континент у пошуках кращого майбутнього — одне з найважчих рішень для батьків. Цей вебсайт не надає юридичних порад. Тут публікуються історії молоді, яка приїхала до Франції як неповнолітні без супроводу. Ці історії показують лише один можливий шлях, яким може піти життя молодої людини, але важливо, щоб батьки зрозуміли, яким може бути життя їхньої дитини, перш ніж приймати рішення. Якщо ви неповнолітній без супроводу або пройшли через це — поділіться своєю історією анонімно. Кожен голос має значення.`,
+    ps: `ستاسو د ماشوم د ښه راتلونکي لپاره یو بل وچ ته یوازې لیږل یو له تر ټولو سختو پرېکړو څخه دی چې یو والدین یې کولی شي. دا ویب‌پاڼه قانوني مشوره نه وړاندې کوي، بلکې د هغو ځوانانو کیسې شریکوي چې د بې سرپرسته کوچنیانو په توګه فرانسې ته رسیدلي. دغه کیسې یوازې یوه ممکنه لاره ښيي، خو مهمه ده چې تاسو د یوه والد په توګه پوه شئ چې د ماشوم ژوند ممکن څنګه وي. که تاسو هم بې سرپرسته ماینر یاست یا تېر شوي یاست، کولای شئ خپله کیسه په پټه توګه دلته شریکه کړئ. هر غږ اهمیت لري.`,
+    fa: `فرستادن فرزندتان به تنهایی به قاره‌ای دیگر به امید آینده‌ای بهتر یکی از سخت‌ترین تصمیماتی است که والدین می‌توانند بگیرند. این وبسایت مشاوره حقوقی ارائه نمی‌دهد. در عوض، داستان‌هایی از جوانانی که به عنوان نوجوانان بدون همراه وارد فرانسه شده‌اند، به اشتراک گذاشته می‌شود. این داستان‌ها تنها یک مسیر ممکن را نشان می‌دهند، اما مهم است که شما به عنوان والد بدانید ممکن است زندگی فرزندتان چگونه باشد. اگر شما هم نوجوانی بدون همراه هستید یا بوده‌اید، می‌توانید داستان خود را به صورت ناشناس در اینجا به اشتراک بگذارید. هر صدا مهم است.`,
+  };
 
   const fetchPosts = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/posts');
-      setPosts(res.data);
-    } catch (error) {
-      console.error('Error loading posts:', error);
+      const res = await fetch(`${API_URL}/posts`);
+      const data = await res.json();
+      setPosts(data);
+    } catch (err) {
+      console.error('Error fetching posts:', err);
     }
   };
 
@@ -71,97 +35,154 @@ function App() {
     fetchPosts();
   }, []);
 
-  const handlePost = async () => {
-    if (!text && !image) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!text.trim() && !image) return;
 
     const formData = new FormData();
     formData.append('text', text);
     if (image) formData.append('image', image);
 
     try {
-      await axios.post('http://localhost:5000/posts', formData);
+      await fetch(`${API_URL}/posts`, {
+        method: 'POST',
+        body: formData,
+      });
       setText('');
       setImage(null);
-      fetchPosts();
-    } catch (error) {
-      console.error('Error posting:', error);
+      await fetchPosts();
+    } catch (err) {
+      console.error('Error submitting post:', err);
     }
   };
 
-  const handleComment = async (postId, commentText) => {
-    if (!commentText) return;
-
+  const handleComment = async (postId) => {
+    if (!comment.trim()) return;
     try {
-      await axios.post(`http://localhost:5000/posts/${postId}/comment`, { comment: commentText });
-      fetchPosts();
-    } catch (error) {
-      console.error('Error adding comment:', error);
+      await fetch(`${API_URL}/posts/${postId}/comment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comment }),
+      });
+      setComment('');
+      setCommentingPostId(null);
+      await fetchPosts();
+    } catch (err) {
+      console.error('Error posting comment:', err);
+    }
+  };
+
+  const handleDelete = async (postId) => {
+    if (!window.confirm('Are you sure you want to delete this post?')) return;
+    try {
+      await fetch(`${API_URL}/posts/${postId}`, {
+        method: 'DELETE',
+      });
+      await fetchPosts();
+    } catch (err) {
+      console.error('Error deleting post:', err);
     }
   };
 
   return (
-    <div className="App" style={{ padding: '20px', maxWidth: '600px', margin: 'auto' }}>
-      {/* Language Buttons */}
-      <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-        <button onClick={() => setLanguage('en')} disabled={language === 'en'}>English</button>{' '}
-        <button onClick={() => setLanguage('fr')} disabled={language === 'fr'}>Français</button>{' '}
-        <button onClick={() => setLanguage('ar')} disabled={language === 'ar'}>العربية</button>{' '}
-        <button onClick={() => setLanguage('bm')} disabled={language === 'bm'}>Bambara</button>{' '}
+    <div className="App">
+      <h1>Unaccompanied Minors in France</h1>
+
+      <div className="language-buttons" style={{ marginBottom: '1rem' }}>
+        <button onClick={() => setLanguage('en')} disabled={language === 'en'}>English</button>
+        <button onClick={() => setLanguage('fr')} disabled={language === 'fr'}>Français</button>
+        <button onClick={() => setLanguage('bm')} disabled={language === 'bm'}>Bambara</button>
+        <button onClick={() => setLanguage('ar')} disabled={language === 'ar'}>العربية</button>
         <button onClick={() => setLanguage('uk')} disabled={language === 'uk'}>Українська</button>
+        <button onClick={() => setLanguage('ps')} disabled={language === 'ps'}>پښتو</button>
+        <button onClick={() => setLanguage('fa')} disabled={language === 'fa'}>دری</button>
       </div>
 
-      <h1>{t.title}</h1>
+      <div className="intro-text" style={{ whiteSpace: 'pre-line', marginBottom: '2rem' }}>
+        <p>{introTexts[language]}</p>
+      </div>
 
-      <p style={{ whiteSpace: 'pre-line' }}>{t.welcome}</p>
-      <p style={{ whiteSpace: 'pre-line', marginBottom: '30px' }}>{t.info}</p>
+      <hr />
 
-      <textarea
-        placeholder={t.shareStory}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        rows={4}
-        style={{ width: '100%', marginBottom: '10px' }}
-      />
+      <form onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
+        <textarea
+          placeholder="Write your post..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={4}
+          style={{ width: '100%', marginBottom: '0.5rem' }}
+        />
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImage(e.target.files[0])}
+          style={{ marginBottom: '0.5rem' }}
+        />
+        <br />
+        <button type="submit">Post</button>
+      </form>
 
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setImage(e.target.files[0])}
-        style={{ marginBottom: '10px' }}
-      />
-      <br />
+      {posts.map((post) => (
+        <div key={post._id} className="post" style={{ marginBottom: '1.5rem' }}>
+          <p>{post.text}</p>
+          {post.image && (
+            <img
+              src={`${API_URL}${post.image}`}
+              alt="Post"
+              style={{ maxWidth: '300px', display: 'block', marginBottom: '0.5rem' }}
+            />
+          )}
 
-      <button onClick={handlePost}>{t.post}</button>
+          <div className="comments" style={{ marginLeft: '1rem' }}>
+            <h4>Comments:</h4>
+            {post.comments.length === 0 && <p>No comments yet.</p>}
+            {post.comments.map((c, i) => (
+              <p key={i}>• {c}</p>
+            ))}
 
-      <div style={{ marginTop: '30px' }}>
-        {posts.map((post, index) => (
-          <div key={index} style={{ border: '1px solid #ccc', padding: '15px', marginBottom: '20px' }}>
-            <p>{post.text}</p>
-            {post.image && <img src={`http://localhost:5000${post.image}`} alt="Post" style={{ maxWidth: '100%' }} />}
-
-            <div style={{ marginTop: '10px' }}>
-              <strong>{t.comments}</strong>
-              <ul>
-                {post.comments.map((c, i) => (
-                  <li key={i}>{c}</li>
-                ))}
-              </ul>
-
-              <input
-                type="text"
-                placeholder={t.commentPlaceholder}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleComment(post._id, e.target.value);
-                    e.target.value = '';
-                  }
-                }}
-                style={{ width: '100%', padding: '8px' }}
-              />
-            </div>
+            {commentingPostId === post._id ? (
+              <>
+                <input
+                  type="text"
+                  placeholder="Your comment..."
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  style={{ marginRight: '0.5rem' }}
+                />
+                <button onClick={() => handleComment(post._id)}>Submit</button>
+                <button
+                  onClick={() => {
+                    setCommentingPostId(null);
+                    setComment('');
+                  }}
+                  style={{ marginLeft: '0.5rem' }}
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button onClick={() => setCommentingPostId(post._id)}>Comment</button>
+            )}
           </div>
-        ))}
-      </div>
+
+          <button
+            onClick={() => handleDelete(post._id)}
+            style={{
+              marginTop: '0.5rem',
+              backgroundColor: 'white',
+              color: 'black',
+              border: '1px solid black',
+              padding: '0.4rem 0.8rem',
+              borderRadius: '5px',
+              cursor: 'pointer',
+            }}
+          >
+            Delete
+          </button>
+
+          <hr />
+        </div>
+      ))}
     </div>
   );
 }
