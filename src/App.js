@@ -32,8 +32,9 @@ function App() {
   };
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+  fetchPosts();
+}, [fetchPosts]);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
